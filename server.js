@@ -1,26 +1,14 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const multer = require('multer');
-
-console.log(process.env.TEST)
 
 const app = express();
-const upload = multer({dest: 'uploads/'});
 app.use(cors());
 
-const port = 4000;
+const images = require('./routes/images');
+app.use('/images', images);
 
-app.get('/', (req, res) => {
-    res.json({ user: 'sheridan'});
-})
 
-app.post('/images', upload.single('imageFile'), (req, res) => {
-    const formData = req.file;
-    console.log(formData);
-    res.sendStatus(200);
-})
-
-app.listen(port, () => {
-    console.log(`listening on port ${port}`);
+app.listen(process.env.SERVER_PORT, () => {
+    console.log(`listening on port ${process.env.SERVER_PORT}`);
 })
