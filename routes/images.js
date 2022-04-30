@@ -15,15 +15,11 @@ router.get('/', async (req, res) => {
 router.post('/', upload.single('imageFile'), async (req, res) => {
     const file = req.file;
     //create object key using format <userId>/<random key>
-    //put object in s3 bucket
-    //if error, send 500
-    //create db entry for photo with object key
-    //if error, send 500 and delete object from s3
-
     const objectKey = uuid();
     try {
         await uploadFile(file, objectKey);
         await client.query(`INSERT INTO photos (key) VALUES ('${objectKey}')`);
+        res.sendStatus(200);
     } catch(err) {
         console.log(err)
         res.sendStatus(500);
@@ -42,6 +38,7 @@ router.get('/:key', async (req, res) => {
 router.delete('/:key', async (req, res) => {
     try {
         await deleteFile(req.params.key);
+        res.sendStatus(200);
     } catch(err) {
         res.sendStatus(500);
     }
