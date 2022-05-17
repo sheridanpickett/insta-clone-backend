@@ -8,8 +8,8 @@ const router = express.Router();
 const upload = multer();
 
 router.get('/', async (req, res) => {
-    const photos = await client.query('SELECT * FROM photos');
-    res.json(photos.rows);
+    const images = await client.query('SELECT * FROM images');
+    res.json(images.rows);
 })
 
 router.post('/', upload.single('imageFile'), async (req, res) => {
@@ -18,7 +18,7 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
 
     try {
         await uploadFile(file, objectKey);
-        await client.query(`INSERT INTO photos (key) VALUES ('${objectKey}')`);
+        await client.query(`INSERT INTO images (key) VALUES ('${objectKey}')`);
         res.sendStatus(200);
     } catch(err) {
         console.log(err)
@@ -28,7 +28,7 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
 
 router.get('/allImageKeys', async (req, res) => {
     try {
-        const imageKeys = await client.query(`SELECT key FROM photos`);
+        const imageKeys = await client.query(`SELECT file_key FROM images`);
         res.send(imageKeys.rows);
     } catch(err) {
         console.log(err);
