@@ -7,8 +7,12 @@ app.use(cors());
 
 const images = require('./routes/images');
 app.use('/images', images);
-
+const accounts = require('./routes/accounts');
+app.use('/accounts', accounts);
 
 app.listen(process.env.SERVER_PORT, () => {
     console.log(`listening on port ${process.env.SERVER_PORT}`);
 })
+
+
+  

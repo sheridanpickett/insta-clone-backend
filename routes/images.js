@@ -14,8 +14,8 @@ router.get('/', async (req, res) => {
 
 router.post('/', upload.single('imageFile'), async (req, res) => {
     const file = req.file;
-    //create object key using format <userId>/<random key>
     const objectKey = uuid();
+
     try {
         await uploadFile(file, objectKey);
         await client.query(`INSERT INTO photos (key) VALUES ('${objectKey}')`);
@@ -23,6 +23,15 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
     } catch(err) {
         console.log(err)
         res.sendStatus(500);
+    }
+})
+
+router.get('/allImageKeys', async (req, res) => {
+    try {
+        const imageKeys = await client.query(`SELECT key FROM photos`);
+        res.send(imageKeys.rows);
+    } catch(err) {
+        console.log(err);
     }
 })
 
