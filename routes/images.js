@@ -29,7 +29,7 @@ router.post('/', upload.single('imageFile'), async (req, res) => {
 router.get('/allImageKeys', async (req, res) => {
     try {
         let imageKeys = await client.query(`SELECT file_key FROM images`);
-        imageKeys = imageKeys.map(imageKey=>imageKey.file_key);
+        imageKeys = imageKeys.rows.map(imageKey=>imageKey.file_key);
         res.send(imageKeys);
     } catch(err) {
         console.log(err);
