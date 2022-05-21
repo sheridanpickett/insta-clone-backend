@@ -39,10 +39,10 @@ router.post('/validate_signup', (req, res) => {
 })
 
 router.post('/signup', async (req, res) => {
-    const { uid, fullName } = req.body;
+    const { uid, fullName, username } = req.body;
     try {
-        await client.query(`INSERT INTO user_data (uid, full_name) VALUES ('${uid}', '${fullName}')`);
-        return res.sendStatus(200);
+        const userData = await client.query(`INSERT INTO user_data (uid, full_name, username) VALUES ('${uid}', '${fullName}', '${username}') RETURNING *`);
+        return res.send(userData.rows[0]);
     } catch(error) {
         return res.sendStatus(500);
     }
