@@ -35,7 +35,7 @@ const validateNewUser = (email, fullName, username, password) => {
 router.post('/validate_signup', (req, res) => {
     const { email, fullName, username, password} = req.body;
     const result = validateNewUser(email, fullName, username, password);
-    res.send(result);
+    return res.send(result);
 })
 
 router.post('/signup', async (req, res) => {
@@ -45,6 +45,18 @@ router.post('/signup', async (req, res) => {
         return res.sendStatus(200);
     } catch(error) {
         return res.sendStatus(500);
+    }
+})
+
+router.get('/user_data', async (req, res) => {
+    try {
+        const uid = req.query.uid;
+        let userData = await client.query(`SELECT * FROM user_data WHERE uid = '${uid}'`);
+        userData = userData.rows[0];
+        delete userData.uid;
+        return res.send(userData);
+    } catch(error) {
+        res.sendStatus(500);
     }
 })
 
