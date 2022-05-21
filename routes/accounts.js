@@ -1,52 +1,50 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const { client } = require('../postgres')
-const crypto = require('crypto');const argon2 = require('argon2');
 const Joi = require('joi');
-
-const hasher = async () => {
-    try {
-      const hash = await argon2.hash("password1223");
-      console.log(hash);
-    } catch (err) {
-      //...
-    }
-}
-
+const { v4: uuid } = require('uuid');
 const router = express.Router();
-const jsonParser = bodyParser.json();
 
-
-router.post('/create_user', jsonParser, async (req, res) => {
-    const {wasDryRun, email, fullName, username, password} = req.body;
-    const schema = Joi.object({
+const validateNewUser = (email, fullName, username, password) => {
+    let errorMessages = [];
+    let details = {
+        email: {error: false, accepted: false},
+        fullName: {error: false, accepted: false},
+        username: {error: false, accepted: false},
+        password: {error: false, accepted: false}
+    }
+    const userSchema = Joi.object({
         email: Joi.string().email().max(250).required(),
-        name: Joi.string().min(1).max(65).required(),
+        fullName: Joi.string().min(1).max(65).required(),
         username: Joi.string().min(6).max(65).required(),
         password: Joi.string().min(6).required()
     })
-    const {error} = schema.validate({email, name: fullName, username, password}, {abortEarly: false});
-    if(error) {
-        const errors = error.details.map(err=>({
-            message: err.message,
-            label: err.context.label
-        }))
-        res.send({
-            errors
-        });
-    } else {
-        //if successful, check db if email, username exists
-        const usernameExistsQuery = await client.query(`SELECT id FROM users WHERE username = '${username}'`);
-        const emailExistsQuery = await client.query(`SELECT id FROM users WHERE email = '${email}'`);
-        let errors = [];
-        if(usernameExistsQuery.rowCount > 0) {
-            errors.push({label: 'username', message: 'a user with that username already exists'});
-        }
-        if(emailExistsQuery.rowCount > 0) {
-            errors.push({label: 'email', message: 'a user with that email already exists'});
-        }
-        res.statusCode(201);
-        res.send({errors});
+    const {error} = userSchema.validate({email, fullName, username, password}, {abortEarly: false});
+    error && error.details.map(err=>{
+        errorMessages.push(err.message);
+        details[err.context.label]['error'] = true;
+    })
+    let passed = false;
+    if(errorMessages.length < 1) {
+        passed = true;
+    }
+    //look up email in firebase
+    //look up username in firebase
+    return {errorMessages, details, passed};
+}
+
+router.post('/validate_signup', (req, res) => {
+    const { email, fullName, username, password} = req.body;
+    const result = validateNewUser(email, fullName, username, password);
+    res.send(result);
+})
+
+router.post('/signup', async (req, res) => {
+    const { uid, fullName } = req.body;
+    try {
+        await client.query(`INSERT INTO user_data (uid, full_name) VALUES ('${uid}', '${fullName}')`);
+        return res.sendStatus(200);
+    } catch(error) {
+        return res.sendStatus(500);
     }
 })
 
