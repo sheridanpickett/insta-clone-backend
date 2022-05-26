@@ -8,8 +8,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cors());
 
-const images = require('./routes/images');
-app.use('/images', images);
+const posts = require('./routes/posts');
+app.use('/posts', posts);
 const accounts = require('./routes/accounts');
 app.use('/accounts', accounts);
 

@@ -41,7 +41,7 @@ router.post('/validate_signup', (req, res) => {
 router.post('/signup', async (req, res) => {
     const { uid, fullName, username } = req.body;
     try {
-        const userData = await client.query(`INSERT INTO user_data (uid, full_name, username) VALUES ('${uid}', '${fullName}', '${username}') RETURNING *`);
+        const userData = await client.query(`INSERT INTO users (uid, full_name, username) VALUES ('${uid}', '${fullName}', '${username}') RETURNING *`);
         return res.send(userData.rows[0]);
     } catch(error) {
         return res.sendStatus(500);
@@ -51,7 +51,7 @@ router.post('/signup', async (req, res) => {
 router.get('/user_data', async (req, res) => {
     try {
         const uid = req.query.uid;
-        let userData = await client.query(`SELECT * FROM user_data WHERE uid = '${uid}'`);
+        let userData = await client.query(`SELECT * FROM users WHERE uid = '${uid}'`);
         userData = userData.rows[0];
         delete userData.uid;
         return res.send(userData);

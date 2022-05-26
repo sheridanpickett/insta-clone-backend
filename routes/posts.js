@@ -7,30 +7,29 @@ const { uploadFile, getFile, deleteFile } =  require('../s3');
 const router = express.Router();
 const upload = multer();
 
-router.get('/', async (req, res) => {
-    const images = await client.query('SELECT * FROM images');
-    return res.json(images.rows);
-})
 
-router.post('/', upload.single('imageFile'), async (req, res) => {
-    const file = req.file;
-    const objectKey = uuid();
-
-    try {
-        await uploadFile(file, objectKey);
-        await client.query(`INSERT INTO images (file_key) VALUES ('${objectKey}')`);
-        return res.sendStatus(200);
-    } catch(err) {
-        console.log(err)
-        return res.sendStatus(500);
+router.post('/create_post', upload.single('imageFile'), async (req, res) => {
+    try{
+        const file = req.file;
+        const uid = req.body.uid
+        const fileKey = uuid();
+        await uploadFile(file, fileKey);
+        await client.query(`INSERT INTO posts (user_uid, file_key) VALUES ('${uid}', '${fileKey}')`);
+        res.sendStatus(200);
+    } catch(error) {
+        console.log(error)
+        res.sendStatus(500);
     }
 })
 
-router.get('/allImageKeys', async (req, res) => {
+router.get('/all_posts', async (req, res) => {
     try {
-        let imageKeys = await client.query(`SELECT file_key FROM images`);
-        imageKeys = imageKeys.rows.map(imageKey=>imageKey.file_key);
-        return res.send(imageKeys);
+        let posts = await client.query(`
+            SELECT posts.date_created AS date_created, id, file_key, uid, full_name, username
+            FROM posts JOIN users ON uid = user_uid
+        `);
+        console.log(posts);
+        return res.send(posts.rows);
     } catch(err) {
         console.log(err);
     }
