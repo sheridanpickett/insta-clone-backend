@@ -18,29 +18,39 @@ router.post('/create_post', upload.single('imageFile'), async (req, res) => {
         res.sendStatus(200);
     } catch(error) {
         console.log(error)
-        res.sendStatus(500);
+        return res.sendStatus(500);
     }
 })
 
-router.get('/all_posts', async (req, res) => {
+router.post('/get_post', async (req, res) => {
+    console.log(req.body)
+    const { postId, viewerUid } = req.body;
     try {
-        let posts = await client.query(`
-            SELECT posts.date_created AS date_created, id, file_key, uid, full_name, username
-            FROM posts JOIN users ON uid = user_uid
+        const post = await client.query(`
+            SELECT posts.date_created AS date_created, posts.id as post_id, EXISTS(SELECT 1 FROM users_likes_posts WHERE users_likes_posts.user_uid = '${viewerUid}' AND users_likes_posts.post_id = ${postId}) as liked_by_viewer, file_key, uid, full_name, username
+            FROM posts 
+                INNER JOIN users ON uid = user_uid
+            WHERE posts.id = ${postId}
+        `)
+        console.log(post)
+        return res.send(post.rows[0]);
+    } catch(error) {
+        console.log(error)
+    }
+})
+
+router.post('/all_posts', async (req, res) => {
+    const { viewerUid } = req.body;
+    try {
+        const posts = await client.query(`
+            SELECT posts.date_created AS date_created, posts.id as post_id, EXISTS(SELECT 1 FROM users_likes_posts WHERE users_likes_posts.user_uid = '${viewerUid}' AND users_likes_posts.post_id = post_id) as liked_by_viewer, file_key, uid, full_name, username
+            FROM posts 
+                INNER JOIN users ON uid = user_uid
         `);
         console.log(posts);
         return res.send(posts.rows);
-    } catch(err) {
-        console.log(err);
-    }
-})
-
-router.get('/:key', async (req, res) => {
-    try {
-        const file = await getFile(req.params.key);
-        file.Body.pipe(res);
-    } catch(err) {
-        return res.sendStatus(500);
+    } catch(error) {
+        console.log(error);
     }
 })
 
