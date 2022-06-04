@@ -8,6 +8,7 @@ const client = new Client({
     port: process.env.PGPORT
 });
 
+
 client.connect(err => {
     if (err) {
       console.error('connection error');
